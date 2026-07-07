@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Carteirinha Digital do Pet | PetUniverse</title>
+
+    <style>
+        :root {
+            --pu-petrol: #0B1B3D;       
+            --pu-purple: #521A6D;       
+            --pu-light-blue: #00B4D8;   
+            --pu-white: #FFFFFF;        
+            
+            --apple-bg: #F5F5F7;        
+            --apple-card: #FFFFFF;      
+            --apple-text-main: #1D1D1F; 
+            --apple-text-muted: #86868B;
+            --apple-border: rgba(0, 0, 0, 0.04); 
+            
+            --apple-success: #34C759;   
+            --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            
+            --radius-premium-lg: 24px;
+            --radius-premium-md: 18px;
+            --radius-premium-sm: 12px;
+            --radius-pill: 9999px;
+            
+            --shadow-ambient: 0 4px 20px rgba(11, 27, 61, 0.03);
+            --shadow-focused: 0 12px 36px rgba(11, 27, 61, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-stack);
+            background-color: var(--apple-bg);
+            color: var(--apple-text-main);
+            letter-spacing: -0.2px;
+            overflow-x: hidden;
+        }
+
+        .viewport-wrapper {
+            max-width: 440px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: var(--apple-bg);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.02);
+        }
+
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 440px;
+            height: 100%;
+            background-color: var(--pu-white);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            padding: 40px 24px;
+            text-align: center;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
+        }
+
+        .splash-logo-wrapper {
+            position: relative;
+            margin-bottom: 32px;
+            animation: initialScale 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        .splash-logo {
+            width: 84px;
+            height: 84px;
+            object-fit: contain;
+        }
+
+        .splash-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--pu-petrol);
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+        }
+
+        .splash-subtitle {
+            font-size: 14px;
+            color: var(--apple-text-muted);
+            max-width: 280px;
+            line-height: 1.4;
+            margin-bottom: 48px;
+        }
+
+        .loading-monitor {
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .monitor-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--pu-purple);
+            opacity: 0;
+            transform: translateY(8px);
+            transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .monitor-text.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @keyframes initialScale {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        #main-app {
+            opacity: 0;
+            visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        #main-app.app-ready {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #main-app.app-ready .stagger-item {
+            animation: sfFadeUp 0.9s cubic-bezier(0.25, 1, 0.5, 1) both;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+
+        @keyframes sfFadeUp {
+            0% { opacity: 0; transform: translateY(24px) scale(0.99); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        header {
+            padding: 40px 24px 28px;
+            background-color: var(--pu-white);
+            border-bottom-left-radius: var(--radius-premium-lg);
+            border-bottom-right-radius: var(--radius-premium-lg);
+            box-shadow: var(--shadow-ambient);
+            text-align: center;
+            position: relative;
+        }
+
+        .app-brand-logo {
+            height: 32px;
+            width: auto;
+            object-fit: contain;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--pu-petrol);
+            letter-spacing: -0.6px;
+        }
+
+        header p {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--pu-purple);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-top: 6px;
+        }
+
+        .app-content-section {
+            padding: 0 20px;
+            margin-top: 20px;
+        }
+
+        .avatar-center-stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 0 8px;
+        }
+
+        .avatar-frame {
+            width: 146px;
+            height: 146px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid var(--pu-white);
+            box-shadow: var(--shadow-focused);
+            margin-bottom: 20px;
+            transition: transform 0.4s ease;
+        }
+
+        .avatar-frame:hover {
+            transform: scale(1.02);
+        }
+
+        .badge-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pill-badge {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            padding: 6px 14px;
+            border-radius: var(--radius-pill);
+            display: flex;
+            align-items: center;
+        }
+
+        .pill-badge-verified {
+            background-color: rgba(52, 199, 89, 0.08);
+            color: var(--apple-success);
+        }
+
+        .pill-badge-tier {
+            background-color: rgba(0, 180, 216, 0.08);
+            color: var(--pu-light-blue);
+        }
+
+        .premium-card {
+            background-color: var(--apple-card);
+            border-radius: var(--radius-premium-md);
+            padding: 24px;
+            box-shadow: var(--shadow-ambient);
+            border: 1px solid var(--apple-border);
+        }
+
+        .card-header-minimal {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--apple-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.02);
+            padding-bottom: 10px;
+        }
+
+        .card-header-minimal svg {
+            color: var(--pu-purple);
+        }
+
+        .meta-data-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            row-gap: 20px;
+            column-gap: 16px;
+        }
+
+        .grid-cell {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cell-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--apple-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+            margin-bottom: 4px;
+        }
+
+        .cell-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--pu-petrol);
+        }
+
+        .clinical-list {
+            list-style: none;
+        }
+
+        .clinical-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--apple-text-main);
+        }
+
+        .clinical-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .clinical-item:first-child {
+            padding-top: 0;
+        }
+
+        .clinical-icon-circle {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background-color: rgba(0, 180, 216, 0.07);
+            color: var(--pu-light-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .haptic-button-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .haptic-btn {
+            width: 100%;
+            padding: 16px 24px;
+            border-radius: var(--radius-premium-md);
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-decoration: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .haptic-btn:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+        }
+
+        .btn-whatsapp {
+            background-color: var(--pu-petrol);
+            color: var(--pu-white);
+            box-shadow: 0 4px 16px rgba(11, 27, 61, 0.12);
+        }
+
+        .btn-call {
+            background-color: var(--pu-purple);
+            color: var(--pu-white);
+            box-shadow: 0 4px 16px rgba(82, 26, 109, 0.12);
+        }
+
+        .btn-location {
+            background-color: var(--pu-white);
+            color: var(--pu-petrol);
+            border: 1px solid rgba(11, 27, 61, 0.1);
+            box-shadow: var(--shadow-ambient);
+        }
+
+        .rescue-editorial-card {
+            background: linear-gradient(145deg, var(--pu-purple) 0%, var(--pu-petrol) 100%);
+            border-radius: var(--radius-premium-md);
+            padding: 28px;
+            color: var(--pu-white);
+            text-align: center;
+            box-shadow: var(--shadow-focused);
+            position: relative;
+            overflow: hidden;
+            border: none;
+        }
+
+        .rescue-editorial-card::before {
+            content: '';
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.02);
+            top: -40px;
+            left: -40px;
+        }
+
+        .editorial-tag {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--pu-light-blue);
+            margin-bottom: 12px;
+        }
+
+        .editorial-slogan {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+            line-height: 1.3;
+            margin-bottom: 14px;
+        }
+
+        .editorial-description {
+            font-size: 13px;
+            line-height: 1.5;
+            opacity: 0.85;
+            font-weight: 400;
+        }
+
+        .tech-endorsement {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin: 36px 0 16px;
+            padding: 0 24px;
+        }
+
+        .tech-endorsement-logo {
+            height: 18px;
+            width: auto;
+            opacity: 0.35;
+            object-fit: contain;
+        }
+
+        .tech-endorsement-text {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--apple-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        footer {
+            padding: 24px 24px 48px;
+            text-align: center;
+            border-top: 1px solid rgba(0,0,0,0.02);
+            background-color: var(--pu-white);
+            border-top-left-radius: var(--radius-premium-lg);
+            border-top-right-radius: var(--radius-premium-lg);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.01);
+        }
+
+        .footer-brand-asset {
+            height: 22px;
+            width: auto;
+            object-fit: contain;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        .footer-legal-claims {
+            font-size: 11px;
+            color: var(--apple-text-muted);
+            line-height: 1.5;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="viewport-wrapper">
+
+        <!-- STAGE 1: SPLASH SCREEN -->
+        <div id="splash-screen">
+            <div class="splash-logo-wrapper">
+                <img src="logo_sistema_pu.png" alt="Sistema PU" class="splash-logo">
+            </div>
+            <h2 class="splash-title">Sistema PU</h2>
+            <p class="splash-subtitle">Inteligência para proteger quem faz parte da sua família.</p>
+            
+            <div class="loading-monitor">
+                <span id="monitor-target" class="monitor-text active">Verificando SmartTag...</span>
+            </div>
+        </div>
+
+        <!-- STAGE 2: MAIN APP -->
+        <div id="main-app">
+            
+            <header>
+                <img src="logo_oficial.jpg" alt="PetUniverse Logo" class="app-brand-logo">
+                <h1>Carteirinha Digital do Pet</h1>
+                <p>Proteção de Outro Mundo</p>
+            </header>
+
+            <div class="app-content-section stagger-item delay-1">
+                <div class="avatar-center-stage">
+                    <img src="nike.jpg" alt="Nike" class="avatar-frame">
+                    <div class="badge-row">
+                        <span class="pill-badge pill-badge-verified">🟢 PET IDENTIFICADO</span>
+                        <span class="pill-badge pill-badge-tier">PLANO: PRATA</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-content-section stagger-item delay-2">
+                <div class="premium-card">
+                    <div class="card-header-minimal">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        Identificação Geral
+                    </div>
+                    <div class="meta-data-grid">
+                        <div class="grid-cell">
+                            <span class="cell-label">Nome</span>
+                            <span class="cell-value">Nike</span>
+                        </div>
+                        <div class="grid-cell">
+                            <span class="cell-label">Espécie</span>
+                            <span class="cell-value">Felino</span>
+                        </div>
+                        <div class="grid-cell">
+                            <span class="cell-label">Raça</span>
+                            <span class="cell-value">Sem Raça Definida (SRD)</span>
+                        </div>
+                        <div class="grid-cell">
+                            <span class="cell-label">Sexo</span>
+                            <span class="cell-value">Fêmea</span>
+                        </div>
+                        <div class="grid-cell">
+                            <span class="cell-label">Tutor</span>
+                            <span class="cell-value">Clara</span>
+                        </div>
+                        <div class="grid-cell">
+                            <span class="cell-label">Cidade</span>
+                            <span class="cell-value">Vitória - ES</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-content-section stagger-item delay-3">
+                <div class="premium-card">
+                    <div class="card-header-minimal">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                        Registros de Saúde
+                    </div>
+                    <ul class="clinical-list">
+                        <li class="clinical-item">
+                            <div class="clinical-icon-circle">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            Vacinação em dia
+                        </li>
+                        <li class="clinical-item">
+                            <div class="clinical-icon-circle">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            Castrada
+                        </li>
+                        <li class="clinical-item">
+                            <div class="clinical-icon-circle">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            Sem alergias conhecidas
+                        </li>
+                        <li class="clinical-item">
+                            <div class="clinical-icon-circle">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            Teleorientação disponível
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="app-content-section haptic-button-stack stagger-item delay-4">
+                <a href="#" class="haptic-btn btn-whatsapp" onclick="alert('Conexão simulada via WhatsApp.'); return false;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    WhatsApp
+                </a>
+                <a href="#" class="haptic-btn btn-call" onclick="alert('Disparando discagem telefônica padrão.'); return false;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                    Ligar
+                </a>
+                <a href="#" class="haptic-btn btn-location" onclick="alert('Solicitando acesso seguro às coordenadas GPS.'); return false;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    Compartilhar localização
+                </a>
+            </div>
+
+            <div class="app-content-section stagger-item delay-5">
+                <div class="rescue-editorial-card">
+                    <div class="editorial-tag">PetUniverse Rescue</div>
+                    <div class="editorial-slogan">Uma assinatura.<br>Duas vidas protegidas.</div>
+                    <p class="editorial-description">
+                        "Ao assinar um plano PetUniverse, você também contribui para o cuidado de animais resgatados."
+                    </p>
+                </div>
+            </div>
+
+            <div class="tech-endorsement">
+                <span class="tech-endorsement-text">Powered by</span>
+                <img src="logo_sistema_pu.png" alt="Sistema PU" class="tech-endorsement-logo">
+                <span class="tech-endorsement-text">Sistema PU</span>
+            </div>
+
+            <footer>
+                <img src="logo_oficial.jpg" alt="PetUniverse Logo" class="footer-brand-asset">
+                <p class="footer-legal-claims">© PetUniverse. Proteção de Outro Mundo.<br>Todos os direitos reservados.</p>
+            </footer>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const splash = document.getElementById('splash-screen');
+            const app = document.getElementById('main-app');
+            const monitorText = document.getElementById('monitor-target');
+
+            const logsTecnologicos = [
+                "Verificando SmartTag...",
+                "✔ SmartTag encontrada",
+                "✔ Identificação validada",
+                "✔ Abrindo ficha do pet..."
+            ];
+
+            let indexPasso = 0;
+
+            const rodarEngineLoader = () => {
+                if (indexPasso < logsTecnologicos.length) {
+                    monitorText.classList.remove('active');
+                    setTimeout(() => {
+                        monitorText.innerText = logsTecnologicos[indexPasso];
+                        monitorText.classList.add('active');
+                        indexPasso++;
+                        setTimeout(rodarEngineLoader, 750);
+                    }, 200);
+                } else {
+                    transicionarInterfaceCompleta();
+                }
+            };
+
+            const transicionarInterfaceCompleta = () => {
+                splash.style.opacity = '0';
+                splash.style.visibility = 'hidden';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    app.classList.add('app-ready');
+                }, 600);
+            };
+
+            setTimeout(rodarEngineLoader, 800);
+        });
+    </script>
+</body>
+</html>
